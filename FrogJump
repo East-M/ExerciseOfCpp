@@ -1,0 +1,103 @@
+//2021.4.29 记忆化搜索，这个比单纯的深度优先搜索要快。有比以下更快的码，在最后的注释中。 原题为【leetcode】青蛙过河
+#include<iostream>
+#include<vector>
+#include<algorithm>
+#include<unordered_map>
+#include<ctime>
+using namespace std;
+
+const int step[3] = { -1,0,1 };
+vector<unordered_map<int, int>>map;
+bool dms(vector<int>stones, int posit, int dx, int length) {
+	if (posit == length - 1)
+		return true;
+
+	if (map[posit].count(dx))
+		return map[posit][dx];
+	
+	for (int i = 0; i < 3; i++)
+	{
+		int next_stone = stones[posit] + dx + step[i];
+		int start_pos = posit + 1;
+		if (dx + step[i] <= 0)//make sure it can move forward;
+			continue;
+
+		int next_pos = lower_bound(stones.begin()+start_pos, stones.end(), next_stone) - stones.begin(); 
+
+		//if you had found the stone,you can run the next statment;
+		if (next_pos!=length&&stones[next_pos]==next_stone&&dms(stones, next_pos, dx + step[i], length))
+			return map[posit][dx]=true;
+	}
+
+	return map[posit][dx]=false;
+}
+
+bool canCross(vector<int>& stones) {
+	int length = stones.size();
+
+	map.resize(length); //creat a hash map for every stone;
+
+	if (stones[1] != 1)
+		return false;
+
+	if (dms(stones, 1, 1, length))
+		return true;
+	else
+		return false;
+}
+
+int main(void)
+{
+	clock_t start, end;
+
+	vector<int> stones;
+	for (int i = 0; i < 999; i++)
+		stones.push_back(i);
+	stones.push_back(99999999);
+
+	start = clock();
+
+	if (canCross(stones))
+		cout << "true" << endl;
+	else
+		cout << "false" << endl;
+
+	end = clock();
+
+	cout << end - start << "ms" << endl;
+
+	return 0;
+}
+
+//以下的码更快
+//unordered_map<int, int> hashs;
+//int f[2000][2000];
+//int dp(vector<int>& stones, int i, int j) {
+//	if (f[i][j] != -1)
+//		return f[i][j];
+//	f[i][j] = 0;
+//	for (int k = max(1, j - 1); k <= j + 1; k++) {
+//		if (hashs.count(stones[i] - k))
+//		{
+//			int p = hashs[stones[i] - k];
+//			if (dp(stones, p, k))
+//			{
+//				f[i][j] = 1;
+//				break;
+//			}
+//		}
+//	}
+//	return f[i][j];
+//}
+//
+//bool canCross(vector<int>& stones) {
+//	int n = stones.size();
+//	for (int i = 0; i < n; i++)
+//		hashs[stones[i]] = i;
+//	memset(f, -1, sizeof f);
+//	f[0][1] = 1;
+//	for (int i = 0; i < n; i++)
+//		if (dp(stones, n - 1, i))
+//			return true;
+//	return false;
+//}
